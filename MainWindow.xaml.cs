@@ -14,6 +14,7 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
     using Microsoft.Kinect.Toolkit;
     using Microsoft.Kinect.Toolkit.Controls;
     using Microsoft.Kinect.Toolkit.Interaction;
+    using Microsoft.Samples.Kinect.WpfViewers;
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
     using System.Windows.Shapes;
@@ -26,12 +27,6 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
     public partial class MainWindow
     {
 
-        //KinectSensor sensor = KinectSensor.KinectSensors[0];
-        private byte[] colorPixelData;
-        private WriteableBitmap outputImage;
-        private readonly Brush[] skeletonBrushes;
-        private Skeleton[] frameSkeletons;
-
         public static readonly DependencyProperty PageLeftEnabledProperty = DependencyProperty.Register(
             "PageLeftEnabled", typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
 
@@ -42,7 +37,9 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
 
         private const int PixelScrollByAmount = 20;
 
-        private readonly KinectSensorChooser sensorChooser;
+        private readonly KinectSensorChooser sensorChooser = new KinectSensorChooser();
+
+        private Skeleton[] skeletons = new Skeleton[0];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainWindow"/> class. 
@@ -53,21 +50,27 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             
             //sensor.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(sensor_ColorFrameReady);
             //sensor.Start();
+            DataContext = this;
             this.InitializeComponent();
 
             // initialize the sensor chooser and UI
-            this.sensorChooser = new KinectSensorChooser();
+            //this.sensorChooser = new KinectSensorChooser();
+            KinectSensorManager = new KinectSensorManager();
+            KinectSensorManager.KinectSensorChanged += this.KinectSensorChanged;
             this.sensorChooser.KinectChanged += SensorChooserOnKinectChanged;
-            this.sensorChooser.Kinect.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
-            this.sensorChooser.Kinect.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(sensor_ColorFrameReady);
-            this.sensorChooser.Kinect.SkeletonStream.Enable();
-            this.sensorChooser.Kinect.SkeletonFrameReady += kinectDevice_SkeletonFrameReady; 
+            //this.sensorChooser.Kinect.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
+            //this.sensorChooser.Kinect.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(sensor_ColorFrameReady);
+            //this.sensorChooser.Kinect.SkeletonStream.Enable();
+            //this.sensorChooser.Kinect.SkeletonFrameReady += kinectDevice_SkeletonFrameReady; 
             this.sensorChooserUi.KinectSensorChooser = this.sensorChooser;
             this.sensorChooser.Start();
 
             // Bind the sensor chooser's current sensor to the KinectRegion
             var regionSensorBinding = new Binding("Kinect") { Source = this.sensorChooser };
             BindingOperations.SetBinding(this.kinectRegion, KinectRegion.KinectSensorProperty, regionSensorBinding);
+
+            var kinectSensorBinding = new Binding("Kinect") { Source = this.sensorChooser };
+            BindingOperations.SetBinding(this.KinectSensorManager, KinectSensorManager.KinectSensorProperty, kinectSensorBinding);
 
            // var regionSensorBinding = new Binding("Kinect") { Source = this.sensor };
            // BindingOperations.SetBinding(this.kinectRegion, KinectRegion.KinectSensorProperty, regionSensorBinding);
@@ -86,6 +89,125 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             this.UpdatePagingButtonState();
             scrollViewer.ScrollChanged += (o, e) => this.UpdatePagingButtonState();
         }
+
+        #region Kinect Discovery & Setup
+
+        private void KinectSensorChanged(object sender, KinectSensorManagerEventArgs<KinectSensor> args)
+        {
+            if (null != args.OldValue)
+                UninitializeKinectServices(args.OldValue);
+
+            if (null != args.NewValue)
+                InitializeKinectServices(KinectSensorManager, args.NewValue);
+        }
+
+        /// <summary>
+        /// Kinect enabled apps should customize which Kinect services it initializes here.
+        /// </summary>
+        /// <param name="kinectSensorManager"></param>
+        /// <param name="sensor"></param>
+        private void InitializeKinectServices(KinectSensorManager kinectSensorManager, KinectSensor sensor)
+        {
+            // Application should enable all streams first.
+
+            // configure the color stream
+            kinectSensorManager.ColorFormat = ColorImageFormat.RgbResolution640x480Fps30;
+            kinectSensorManager.ColorStreamEnabled = true;
+
+            // configure the depth stream
+            kinectSensorManager.DepthStreamEnabled = true;
+
+            kinectSensorManager.TransformSmoothParameters =
+                new TransformSmoothParameters
+                {
+                    Smoothing = 0.5f,
+                    Correction = 0.5f,
+                    Prediction = 0.5f,
+                    JitterRadius = 0.05f,
+                    MaxDeviationRadius = 0.04f
+                };
+
+            // configure the skeleton stream
+            sensor.SkeletonFrameReady += OnSkeletonFrameReady;
+            kinectSensorManager.SkeletonStreamEnabled = true;
+
+            // initialize the gesture recognizer
+
+            kinectSensorManager.KinectSensorEnabled = true;
+
+            if (!kinectSensorManager.KinectSensorAppConflict)
+            {
+                // addition configuration, as needed
+            }
+        }
+
+        private void UninitializeKinectServices(KinectSensor sensor)
+        {
+
+        }
+
+        #endregion Kinect Discovery & Setup
+
+        #region Properties
+
+        public static readonly DependencyProperty KinectSensorManagerProperty =
+            DependencyProperty.Register(
+                "KinectSensorManager",
+                typeof(KinectSensorManager),
+                typeof(MainWindow),
+                new PropertyMetadata(null));
+
+        public KinectSensorManager KinectSensorManager
+        {
+            get { return (KinectSensorManager)GetValue(KinectSensorManagerProperty); }
+            set { SetValue(KinectSensorManagerProperty, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the last recognized gesture.
+        /// </summary>
+
+
+        #endregion Properties
+
+        #region Event Handlers
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e">Gesture event arguments.</param>
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnSkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
+        {
+            using (SkeletonFrame frame = e.OpenSkeletonFrame())
+            {
+                if (frame == null)
+                    return;
+
+                // resize the skeletons array if needed
+                if (skeletons.Length != frame.SkeletonArrayLength)
+                    skeletons = new Skeleton[frame.SkeletonArrayLength];
+
+                // get the skeleton data
+                frame.CopySkeletonDataTo(skeletons);
+
+                //   foreach (var skeleton in skeletons)
+                //   {
+                //       // skip the skeleton if it is not being tracked
+                //       if (skeleton.TrackingState != SkeletonTrackingState.Tracked)
+                //           continue;
+                //
+                //   }
+            }
+        }
+
+        #endregion Event Handlers
 
         /// <summary>
         /// CLR Property Wrappers for PageLeftEnabledProperty
@@ -125,119 +247,6 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
         /// <param name="sender">sender of the event</param>
         /// <param name="args">event arguments</param>
         /// 
-        void sensor_ColorFrameReady(object sender, ColorImageFrameReadyEventArgs e)
-       {
-           using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
-           {
-               if (colorFrame != null)
-               {
-                   //Using standard SDK
-                   this.colorPixelData = new byte[colorFrame.PixelDataLength];
-    
-                   colorFrame.CopyPixelDataTo(this.colorPixelData);
-    
-                   this.outputImage = new WriteableBitmap(
-                   colorFrame.Width,
-                   colorFrame.Height,
-                   96,  // DpiX
-                   96,  // DpiY
-                   PixelFormats.Bgr32,
-                   null);
-    
-                   this.outputImage.WritePixels(
-                   new Int32Rect(0, 0, colorFrame.Width, colorFrame.Height),
-                   this.colorPixelData,
-                   colorFrame.Width * 4,
-                   0);
-                   this.kinectColorImage.Source = this.outputImage;
-    
-                   //Using Coding4Fun Kinect Toolkit
-                   //kinectColorImage.Source = imageFrame.ToBitmapSource();
-    
-               }
-           }
-       }
-
-
-        void kinectDevice_SkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
-        {
-            using (SkeletonFrame frame = e.OpenSkeletonFrame())
-            {
-                if (frame != null)
-                {
-                    Polyline figure;
-                    Brush userBrush;
-                    Skeleton skeleton;
-
-                    LayoutRoot.Children.Clear();
-                    frame.CopySkeletonDataTo(this.frameSkeletons);
-
-
-                    for (int i = 0; i < this.frameSkeletons.Length; i++)
-                    {
-                        skeleton = this.frameSkeletons[i];
-
-                        if (skeleton.TrackingState == SkeletonTrackingState.Tracked)
-                        {
-                            userBrush = this.skeletonBrushes[i % this.skeletonBrushes.Length];
-
-                            //绘制头和躯干
-                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.Head, JointType.ShoulderCenter, JointType.ShoulderLeft, JointType.Spine,
-                                                                JointType.ShoulderRight, JointType.ShoulderCenter, JointType.HipCenter
-                                                                });
-                            LayoutRoot.Children.Add(figure);
-
-                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.HipLeft, JointType.HipRight });
-                            LayoutRoot.Children.Add(figure);
-
-                            //绘制作腿
-                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.HipCenter, JointType.HipLeft, JointType.KneeLeft, JointType.AnkleLeft, JointType.FootLeft });
-                            LayoutRoot.Children.Add(figure);
-
-                            //绘制右腿
-                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.HipCenter, JointType.HipRight, JointType.KneeRight, JointType.AnkleRight, JointType.FootRight });
-                            LayoutRoot.Children.Add(figure);
-
-                            //绘制左臂
-                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.ShoulderLeft, JointType.ElbowLeft, JointType.WristLeft, JointType.HandLeft });
-                            LayoutRoot.Children.Add(figure);
-
-                            //绘制右臂
-                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.ShoulderRight, JointType.ElbowRight, JointType.WristRight, JointType.HandRight });
-                            LayoutRoot.Children.Add(figure);
-                        }
-                    }
-                }
-            }
-        }
-
-        private Polyline CreateFigure(Skeleton skeleton, Brush brush, JointType[] joints)
-        {
-            Polyline figure = new Polyline();
-
-            figure.StrokeThickness = 8;
-            figure.Stroke = brush;
-
-            for (int i = 0; i < joints.Length; i++)
-            {
-                figure.Points.Add(GetJointPoint(skeleton.Joints[joints[i]]));
-            }
-
-            return figure;
-        }
-
-        private Point GetJointPoint(Joint joint)
-        {
-            CoordinateMapper cm = new CoordinateMapper(this.sensorChooser.Kinect);
-
-            DepthImagePoint point = cm.MapSkeletonPointToDepthPoint(joint.Position, this.sensorChooser.Kinect.DepthStream.Format);
-            //ColorImagePoint point = cm.MapSkeletonPointToColorPoint(joint.Position, this.KinectDevice.ColorStream.Format);
-            point.X *= (int)this.LayoutRoot.ActualWidth / this.sensorChooser.Kinect.DepthStream.FrameWidth;
-            point.Y *= (int)this.LayoutRoot.ActualHeight / this.sensorChooser.Kinect.DepthStream.FrameHeight;
-
-            return new Point(point.X, point.Y);
-        } 
-
 
         private static void SensorChooserOnKinectChanged(object sender, KinectChangedEventArgs args)
         {

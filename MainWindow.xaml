@@ -4,6 +4,7 @@
         xmlns:k="http://schemas.microsoft.com/kinect/2013"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:kt="clr-namespace:Microsoft.Samples.Kinect.WpfViewers;assembly=Microsoft.Samples.Kinect.WpfViewers"
         xmlns:local="clr-namespace:Microsoft.Samples.Kinect.ControlsBasics"
         Name="ControlsBasicsWindow"
         Title="Controls Basics"
@@ -147,8 +148,15 @@
                 </Grid>
             </Grid>
         </k:KinectRegion>
-        <Image x:Name="kinectColorImage" Margin="36,29,551,50" Grid.Row="1" />
-        <Grid x:Name="LayoutRoot" Background="Transparent" >
-        </Grid>
+        
+        
+        <Canvas Margin="0,47,536,10" Grid.Row="1">
+            <kt:KinectColorViewer x:Name="Colorviewer" KinectSensorManager="{Binding KinectSensorManager}" />
+            <kt:KinectSkeletonViewer
+                                    KinectSensorManager="{Binding KinectSensorManager}"
+                                    Width="{Binding ElementName=Colorviewer, Path=ActualWidth}"
+                                    Height="{Binding ElementName=Colorviewer, Path=ActualHeight}"
+                                    ShowBones="True" ShowJoints="True" ShowCenter="True" ImageType="Depth" />
+        </Canvas>
     </Grid>
 </Window>
