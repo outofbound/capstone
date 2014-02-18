@@ -148,5 +148,7 @@
             </Grid>
         </k:KinectRegion>
         <Image x:Name="kinectColorImage" Margin="36,29,551,50" Grid.Row="1" />
+        <Grid x:Name="LayoutRoot" Background="Transparent" >
+        </Grid>
     </Grid>
 </Window>

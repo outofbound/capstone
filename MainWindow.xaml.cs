@@ -16,6 +16,9 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
     using Microsoft.Kinect.Toolkit.Interaction;
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
+    using System.Windows.Shapes;
+    using System.Windows.Navigation;
+
 
     /// <summary>
     /// Interaction logic for MainWindow
@@ -23,9 +26,11 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
     public partial class MainWindow
     {
 
-      //  KinectSensor sensor = KinectSensor.KinectSensors[0];
-      //  private byte[] colorPixelData;
-       // private WriteableBitmap outputImage;
+        //KinectSensor sensor = KinectSensor.KinectSensors[0];
+        private byte[] colorPixelData;
+        private WriteableBitmap outputImage;
+        private readonly Brush[] skeletonBrushes;
+        private Skeleton[] frameSkeletons;
 
         public static readonly DependencyProperty PageLeftEnabledProperty = DependencyProperty.Register(
             "PageLeftEnabled", typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
@@ -45,6 +50,7 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
         public MainWindow()
         {
             //sensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
+            
             //sensor.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(sensor_ColorFrameReady);
             //sensor.Start();
             this.InitializeComponent();
@@ -52,8 +58,10 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             // initialize the sensor chooser and UI
             this.sensorChooser = new KinectSensorChooser();
             this.sensorChooser.KinectChanged += SensorChooserOnKinectChanged;
-           // this.sensorChooser.Kinect.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
-           // this.sensorChooser.Kinect.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(sensor_ColorFrameReady);
+            this.sensorChooser.Kinect.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
+            this.sensorChooser.Kinect.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(sensor_ColorFrameReady);
+            this.sensorChooser.Kinect.SkeletonStream.Enable();
+            this.sensorChooser.Kinect.SkeletonFrameReady += kinectDevice_SkeletonFrameReady; 
             this.sensorChooserUi.KinectSensorChooser = this.sensorChooser;
             this.sensorChooser.Start();
 
@@ -117,38 +125,119 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
         /// <param name="sender">sender of the event</param>
         /// <param name="args">event arguments</param>
         /// 
-    //   void sensor_ColorFrameReady(object sender, ColorImageFrameReadyEventArgs e)
-    //   {
-    //       using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
-    //       {
-    //           if (colorFrame != null)
-    //           {
-    //               //Using standard SDK
-    //               this.colorPixelData = new byte[colorFrame.PixelDataLength];
-    //
-    //               colorFrame.CopyPixelDataTo(this.colorPixelData);
-    //
-    //               this.outputImage = new WriteableBitmap(
-    //               colorFrame.Width,
-    //               colorFrame.Height,
-    //               96,  // DpiX
-    //               96,  // DpiY
-    //               PixelFormats.Bgr32,
-    //               null);
-    //
-    //               this.outputImage.WritePixels(
-    //               new Int32Rect(0, 0, colorFrame.Width, colorFrame.Height),
-    //               this.colorPixelData,
-    //               colorFrame.Width * 4,
-    //               0);
-    //               this.kinectColorImage.Source = this.outputImage;
-    //
-    //               //Using Coding4Fun Kinect Toolkit
-    //               //kinectColorImage.Source = imageFrame.ToBitmapSource();
-    //
-    //           }
-    //       }
-    //   }
+        void sensor_ColorFrameReady(object sender, ColorImageFrameReadyEventArgs e)
+       {
+           using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
+           {
+               if (colorFrame != null)
+               {
+                   //Using standard SDK
+                   this.colorPixelData = new byte[colorFrame.PixelDataLength];
+    
+                   colorFrame.CopyPixelDataTo(this.colorPixelData);
+    
+                   this.outputImage = new WriteableBitmap(
+                   colorFrame.Width,
+                   colorFrame.Height,
+                   96,  // DpiX
+                   96,  // DpiY
+                   PixelFormats.Bgr32,
+                   null);
+    
+                   this.outputImage.WritePixels(
+                   new Int32Rect(0, 0, colorFrame.Width, colorFrame.Height),
+                   this.colorPixelData,
+                   colorFrame.Width * 4,
+                   0);
+                   this.kinectColorImage.Source = this.outputImage;
+    
+                   //Using Coding4Fun Kinect Toolkit
+                   //kinectColorImage.Source = imageFrame.ToBitmapSource();
+    
+               }
+           }
+       }
+
+
+        void kinectDevice_SkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
+        {
+            using (SkeletonFrame frame = e.OpenSkeletonFrame())
+            {
+                if (frame != null)
+                {
+                    Polyline figure;
+                    Brush userBrush;
+                    Skeleton skeleton;
+
+                    LayoutRoot.Children.Clear();
+                    frame.CopySkeletonDataTo(this.frameSkeletons);
+
+
+                    for (int i = 0; i < this.frameSkeletons.Length; i++)
+                    {
+                        skeleton = this.frameSkeletons[i];
+
+                        if (skeleton.TrackingState == SkeletonTrackingState.Tracked)
+                        {
+                            userBrush = this.skeletonBrushes[i % this.skeletonBrushes.Length];
+
+                            //绘制头和躯干
+                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.Head, JointType.ShoulderCenter, JointType.ShoulderLeft, JointType.Spine,
+                                                                JointType.ShoulderRight, JointType.ShoulderCenter, JointType.HipCenter
+                                                                });
+                            LayoutRoot.Children.Add(figure);
+
+                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.HipLeft, JointType.HipRight });
+                            LayoutRoot.Children.Add(figure);
+
+                            //绘制作腿
+                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.HipCenter, JointType.HipLeft, JointType.KneeLeft, JointType.AnkleLeft, JointType.FootLeft });
+                            LayoutRoot.Children.Add(figure);
+
+                            //绘制右腿
+                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.HipCenter, JointType.HipRight, JointType.KneeRight, JointType.AnkleRight, JointType.FootRight });
+                            LayoutRoot.Children.Add(figure);
+
+                            //绘制左臂
+                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.ShoulderLeft, JointType.ElbowLeft, JointType.WristLeft, JointType.HandLeft });
+                            LayoutRoot.Children.Add(figure);
+
+                            //绘制右臂
+                            figure = CreateFigure(skeleton, userBrush, new[] { JointType.ShoulderRight, JointType.ElbowRight, JointType.WristRight, JointType.HandRight });
+                            LayoutRoot.Children.Add(figure);
+                        }
+                    }
+                }
+            }
+        }
+
+        private Polyline CreateFigure(Skeleton skeleton, Brush brush, JointType[] joints)
+        {
+            Polyline figure = new Polyline();
+
+            figure.StrokeThickness = 8;
+            figure.Stroke = brush;
+
+            for (int i = 0; i < joints.Length; i++)
+            {
+                figure.Points.Add(GetJointPoint(skeleton.Joints[joints[i]]));
+            }
+
+            return figure;
+        }
+
+        private Point GetJointPoint(Joint joint)
+        {
+            CoordinateMapper cm = new CoordinateMapper(this.sensorChooser.Kinect);
+
+            DepthImagePoint point = cm.MapSkeletonPointToDepthPoint(joint.Position, this.sensorChooser.Kinect.DepthStream.Format);
+            //ColorImagePoint point = cm.MapSkeletonPointToColorPoint(joint.Position, this.KinectDevice.ColorStream.Format);
+            point.X *= (int)this.LayoutRoot.ActualWidth / this.sensorChooser.Kinect.DepthStream.FrameWidth;
+            point.Y *= (int)this.LayoutRoot.ActualHeight / this.sensorChooser.Kinect.DepthStream.FrameHeight;
+
+            return new Point(point.X, point.Y);
+        } 
+
 
         private static void SensorChooserOnKinectChanged(object sender, KinectChangedEventArgs args)
         {
