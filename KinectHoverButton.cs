@@ -3,7 +3,7 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
-kljk
+kljk testc testc 
 namespace Microsoft.Samples.Kinect.ControlsBasics
 {
     using System;
