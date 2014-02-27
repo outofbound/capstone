@@ -37,6 +37,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Microsoft SDKs\Kinect\Developer Toolkit v1.8.0\Assemblies\Microsoft.Kinect.Toolkit.Interaction.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Samples.Kinect.WpfViewers">
+      <HintPath>..\KinectWpfViewers\bin\Debug\Microsoft.Samples.Kinect.WpfViewers.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -106,6 +109,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Desktop\ArduinoC#\SerialCommunication\SerialCommunication\SerialCommunication.csproj">
+      <Project>{71bcc9c7-0b61-4d09-bc14-9b43e52b5cba}</Project>
+      <Name>SerialCommunication</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.Kinect.Toolkit.Controls\Microsoft.Kinect.Toolkit.Controls.csproj">
       <Project>{4508C4D1-85BB-4F3F-9E3B-CC93D231C65D}</Project>
       <Name>Microsoft.Kinect.Toolkit.Controls</Name>
@@ -118,6 +125,9 @@
   <ItemGroup>
     <Resource Include="Images\Kinect.ico" />
     <Resource Include="Images\Logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Macfireball.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

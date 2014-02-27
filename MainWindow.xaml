@@ -111,7 +111,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0"  Margin="10 0 10 20">
-            <Image HorizontalAlignment="Left" VerticalAlignment="Bottom" Source="Images\Logo.png" Stretch="None" Margin="0 0 0 4"/>
+            <Image HorizontalAlignment="Left" VerticalAlignment="Bottom" Source="Images\Macfireball.png" Stretch="fill" Margin="0,0,0,4" Width="150" Height="150" RenderOptions.BitmapScalingMode="Fant"/>
             <k:KinectUserViewer k:KinectRegion.KinectRegion="{Binding ElementName=kinectRegion}" Height="100" HorizontalAlignment="Center" VerticalAlignment="Top" />
             <k:KinectSensorChooserUI HorizontalAlignment="Center" VerticalAlignment="Top" Name="sensorChooserUi" />
             <TextBlock HorizontalAlignment="Right" Margin="0 0 -1 0" VerticalAlignment="Bottom" Foreground="{StaticResource MediumGreyBrush}" FontSize="18">Controls Basics</TextBlock>
@@ -127,7 +127,7 @@
                 <k:KinectScrollViewer Grid.Row="0" Name="scrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,58" Grid.RowSpan="1">
                     <WrapPanel VerticalAlignment="Center" x:Name="wrapPanel" Orientation="Vertical" k:KinectTileButton.Click="KinectTileButtonClick">
                         <!-- items for design layout.  They will be replaced at runtime. -->
-                        <k:KinectTileButton Label="1"/>
+                        <k:KinectTileButton Label="1" />
                         <k:KinectTileButton Label="2"/>
                         <k:KinectTileButton Label="3"/>
                         <k:KinectTileButton Label="4"/>
@@ -148,8 +148,8 @@
                 </Grid>
             </Grid>
         </k:KinectRegion>
-        
-        
+
+
         <Canvas Margin="0,47,536,10" Grid.Row="1">
             <kt:KinectColorViewer x:Name="Colorviewer" KinectSensorManager="{Binding KinectSensorManager}" />
             <kt:KinectSkeletonViewer

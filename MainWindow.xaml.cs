@@ -19,11 +19,61 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
     using System.Windows.Media.Imaging;
     using System.Windows.Shapes;
     using System.Windows.Navigation;
+    using System.IO.Ports;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Data;
+    using System.Text;
+    using SerialCommunication;
+    using System.Threading;
+    using System.Timers;
+    using System.Diagnostics;
 
+    
 
     /// <summary>
     /// Interaction logic for MainWindow
     /// </summary>
+    partial class MainWindow
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (disposing && (components != null))
+        //    {
+        //        components.Dispose();
+        //    }
+        //    base.Dispose(disposing);
+        //}
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        //private void InitializeComponent()
+        //{
+        //    this.components = new System.ComponentModel.Container();
+        //    this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
+
+        //}
+
+        #endregion
+
+        public System.IO.Ports.SerialPort serialPort1;
+    }
+
+
+
     public partial class MainWindow
     {
 
@@ -40,6 +90,10 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
         private readonly KinectSensorChooser sensorChooser = new KinectSensorChooser();
 
         private Skeleton[] skeletons = new Skeleton[0];
+        private static System.Timers.Timer MyTimer;
+
+
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainWindow"/> class. 
@@ -52,6 +106,8 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             //sensor.Start();
             DataContext = this;
             this.InitializeComponent();
+            this.components = new System.ComponentModel.Container();
+            this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
 
             // initialize the sensor chooser and UI
             //this.sensorChooser = new KinectSensorChooser();
@@ -79,15 +135,30 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             this.wrapPanel.Children.Clear();
 
             // Add in display content
+            BitmapImage bi = new BitmapImage();
+            bi.BeginInit();
+            bi.UriSource = new Uri("Images/Macfireball.png", UriKind.Relative);
+            bi.EndInit();
             for (var index = 0; index < 6; ++index)
             {
-                var button = new KinectTileButton { Label = (index + 1).ToString(CultureInfo.CurrentCulture) };
+                var button = new KinectTileButton { 
+                    
+                     //Background = new ImageBrush(bi),
+                     //Height = 200,
+                     //Width = 250,
+                    Label = (index + 1).ToString(CultureInfo.CurrentCulture) };
                 this.wrapPanel.Children.Add(button);
             }
 
             // Bind listner to scrollviwer scroll position change, and check scroll viewer position
             this.UpdatePagingButtonState();
             scrollViewer.ScrollChanged += (o, e) => this.UpdatePagingButtonState();
+
+            MyTimer = new System.Timers.Timer();
+            MyTimer.Interval = 5000;
+            MyTimer.Elapsed += new ElapsedEventHandler(MyTimer_Tick);
+            MyTimer.Enabled = false;
+            
         }
 
         #region Kinect Discovery & Setup
@@ -311,9 +382,30 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
         private void KinectTileButtonClick(object sender, RoutedEventArgs e)
         {
             var button = (KinectTileButton)e.OriginalSource;
+
             var selectionDisplay = new SelectionDisplay(button.Label as string);
             this.kinectRegionGrid.Children.Add(selectionDisplay);
             e.Handled = true;
+            serialPort1.Close();
+            serialPort1.PortName = "COM4";
+            serialPort1.BaudRate = 115200;
+            serialPort1.Open();
+            serialPort1.Write("4132001000");
+
+            MyTimer.Enabled = true;
+            MyTimer.Start();
+            
+            
+        
+        }
+
+        private void MyTimer_Tick(object sender, EventArgs e)
+        {
+            serialPort1.Write("4232001000");
+            MyTimer.Stop();
+            MyTimer.Enabled = false;
+            Debug.WriteLine("inMyTimer_Tick \n");
+            Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt"));
         }
 
         /// <summary>
@@ -344,5 +436,26 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             this.PageLeftEnabled = scrollViewer.HorizontalOffset > ScrollErrorMargin;
             this.PageRightEnabled = scrollViewer.HorizontalOffset < scrollViewer.ScrollableWidth - ScrollErrorMargin;
         }
+
+        //public static void timer()
+        //{
+        //    System.Timers.Timer aTimer = new System.Timers.Timer();
+        //    aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+        //    aTimer.Interval = 5000;
+        //    aTimer.Enabled = false;
+
+        //    Console.WriteLine("Press \'q\' to quit the sample.");
+        //    while (Console.Read() != 'q') ;
+        //}
+
+        //private static void OnTimedEvent(object source, ElapsedEventArgs e)
+        //{
+        //    Console.WriteLine("Hello World!");
+        //}
+
+        //// Specify what you want to happen when the Elapsed event is raised.
+        
     }
+
+
 }
