@@ -155,10 +155,24 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             scrollViewer.ScrollChanged += (o, e) => this.UpdatePagingButtonState();
 
             MyTimer = new System.Timers.Timer();
-            MyTimer.Interval = 5000;
+            MyTimer.Interval = 4000;
             MyTimer.Elapsed += new ElapsedEventHandler(MyTimer_Tick);
             MyTimer.Enabled = false;
+
+
+            serialPort1.Close();
+            serialPort1.PortName = "COM4";
+            serialPort1.BaudRate = 300;
+
+            serialPort1.Handshake = Handshake.None;
+            serialPort1.Parity = Parity.None; 
+            serialPort1.DtrEnable = false;
+            serialPort1.RtsEnable = false;
+            if (!(serialPort1.IsOpen))
+                serialPort1.Open();
             
+            serialPort1.BaudRate = 115200;
+            //serialPort1.ReadLine();
         }
 
         #region Kinect Discovery & Setup
@@ -372,6 +386,9 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
         private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             this.sensorChooser.Stop();
+            serialPort1.DiscardOutBuffer();
+            serialPort1.Close();
+            
         }
 
         /// <summary>
@@ -386,12 +403,13 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
             var selectionDisplay = new SelectionDisplay(button.Label as string);
             this.kinectRegionGrid.Children.Add(selectionDisplay);
             e.Handled = true;
-            serialPort1.Close();
-            serialPort1.PortName = "COM4";
-            serialPort1.BaudRate = 115200;
-            serialPort1.Open();
-            serialPort1.Write("4132001000");
+            Console.WriteLine("forwarddirectioncalled11111");
+            //serialPort1.Close();
+           
+            serialPort1.Write("4232006000");
+            //serialPort1.Close();
 
+            Console.WriteLine("forwarddirectioncalled");
             MyTimer.Enabled = true;
             MyTimer.Start();
             
@@ -401,11 +419,14 @@ namespace Microsoft.Samples.Kinect.ControlsBasics
 
         private void MyTimer_Tick(object sender, EventArgs e)
         {
-            serialPort1.Write("4232001000");
+            Console.WriteLine("backwarddirectioncalled");
+            //serialPort1.PortName = "COM4";
+            //serialPort1.BaudRate = 115200;
+            //serialPort1.Open();
+            serialPort1.Write("4132006000");
             MyTimer.Stop();
             MyTimer.Enabled = false;
-            Debug.WriteLine("inMyTimer_Tick \n");
-            Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt"));
+            
         }
 
         /// <summary>

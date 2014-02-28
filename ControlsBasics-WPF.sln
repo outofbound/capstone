@@ -1,11 +1,17 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlsBasics-WPF", "ControlsBasics-WPF.csproj", "{69BB0E72-9FA9-43B7-9673-1BCB6F7F3877}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Kinect.Toolkit.Controls", "..\Microsoft.Kinect.Toolkit.Controls\Microsoft.Kinect.Toolkit.Controls.csproj", "{4508C4D1-85BB-4F3F-9E3B-CC93D231C65D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Kinect.Toolkit", "..\Microsoft.Kinect.Toolkit\Microsoft.Kinect.Toolkit.csproj", "{C6F9C31B-6130-4443-A5CC-EF0664552ECD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Samples.Kinect.WpfViewers", "..\KinectWpfViewers\Microsoft.Samples.Kinect.WpfViewers.csproj", "{4DE23893-27E7-423F-9BB6-BA21DAC2C45E}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Stepper Program", "..\Stepper Program\Stepper Program\Stepper Program.vbproj", "{A81E1EE5-F4FC-4614-9517-E560F685890D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialCommunication", "..\..\..\..\Desktop\ArduinoC#\SerialCommunication\SerialCommunication\SerialCommunication.csproj", "{71BCC9C7-0B61-4D09-BC14-9B43E52B5CBA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +31,18 @@ Global
 		{C6F9C31B-6130-4443-A5CC-EF0664552ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6F9C31B-6130-4443-A5CC-EF0664552ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6F9C31B-6130-4443-A5CC-EF0664552ECD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DE23893-27E7-423F-9BB6-BA21DAC2C45E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DE23893-27E7-423F-9BB6-BA21DAC2C45E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DE23893-27E7-423F-9BB6-BA21DAC2C45E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DE23893-27E7-423F-9BB6-BA21DAC2C45E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A81E1EE5-F4FC-4614-9517-E560F685890D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A81E1EE5-F4FC-4614-9517-E560F685890D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A81E1EE5-F4FC-4614-9517-E560F685890D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A81E1EE5-F4FC-4614-9517-E560F685890D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71BCC9C7-0B61-4D09-BC14-9B43E52B5CBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71BCC9C7-0B61-4D09-BC14-9B43E52B5CBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71BCC9C7-0B61-4D09-BC14-9B43E52B5CBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71BCC9C7-0B61-4D09-BC14-9B43E52B5CBA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
